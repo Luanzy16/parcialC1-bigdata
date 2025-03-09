@@ -21,7 +21,7 @@
           {
             "function": "parcial_p.app",
             "event_source": {
-                  "arn":  "arn:aws:s3:::zappa-parser1",
+                  "arn":  "arn:aws:s3:::zappa-scrapping",
                   "events": [
                     "s3:ObjectCreated:*"
                   ]
