@@ -12,21 +12,22 @@
         "profile_name": "default",
         "project_name": "parser",
         "runtime": "python3.10",
-        "s3_bucket": "zappa-parser1"
+        "s3_bucket": "zappa-parser1",
         "keep_warm": false,
         "apigateway_enabled": false,
         "manage_roles": false,
         "role_name": "LabRole",
         "events": [
-          {
-            "function": "parcial_p.app",
-            "event_source": {
-                  "arn":  "arn:aws:s3:::zappa-scrapping",
-                  "events": [
-                    "s3:ObjectCreated:*"
-                  ]
-               }
-            }]
+            {
+                "function": "parcial_p.app",
+                "event_source": {
+                    "arn": "arn:aws:s3:::zappa-scrapping",
+                    "events": [
+                        "s3:ObjectCreated:*"
+                    ]
+                }
+            }
+        ]
     },
     "dev_parser_ap_east_1": {
         "aws_region": "ap-east-1",

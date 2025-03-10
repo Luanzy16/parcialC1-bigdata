@@ -1,83 +1,56 @@
 import boto3
 import csv
-import os
 import datetime
-import logging
+from io import StringIO
 from bs4 import BeautifulSoup
 
-# Configuración del logger
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+# Configuración de S3
+BUCKET_HTML = "zappa-scrapping"  # Donde está el HTML
+BUCKET_CSV = "zappa-parser1"  # Donde guardar el CSV
 
-# Cliente de S3
 s3_client = boto3.client("s3")
 
-def extract_data_from_html(html_content):
-    """
-    Extrae información de cada casa desde el HTML.
-    """
-    soup = BeautifulSoup(html_content, "html.parser")
-    casas = []
-
-    for casa in soup.find_all("div", class_="casa-item"):
-        barrio = casa.find("span", class_="barrio")
-        valor = casa.find("span", class_="precio")
-        num_habitaciones = casa.find("span", class_="habitaciones")
-        num_banos = casa.find("span", class_="banos")
-        metros2 = casa.find("span", class_="metros2")
-
-        if None in (barrio, valor, num_habitaciones, num_banos, metros2):
-            continue  # Ignorar registros incompletos
-
-        casas.append([
-            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            barrio.text.strip(),
-            valor.text.strip(),
-            num_habitaciones.text.strip(),
-            num_banos.text.strip(),
-            metros2.text.strip()
-        ])
-    
-    return casas
-
 def app(event, context):
-    """
-    Procesa un archivo HTML subido a S3, extrae información y la guarda como CSV.
-    """
+    today = datetime.datetime.utcnow().strftime("%Y-%m-%d")
+    html_filename = f"{today}.html"
+    csv_filename = f"{today}.csv"
+
+    # Descargar HTML desde S3
     try:
-        bucket_name = event["Records"][0]["s3"]["bucket"]["name"]
-        object_key = event["Records"][0]["s3"]["object"]["key"]
-        logger.info(f"Procesando archivo: s3://{bucket_name}/{object_key}")
-
-        # Obtener el archivo HTML desde S3
-        response = s3_client.get_object(Bucket=bucket_name, Key=object_key)
-        html_content = response["Body"].read().decode("utf-8")
-
-        # Extraer datos
-        casas_data = extract_data_from_html(html_content)
-
-        if not casas_data:
-            logger.warning("No se encontraron casas en el archivo HTML.")
-            return {"statusCode": 400, "message": "Archivo HTML sin datos válidos."}
-
-        # Crear nombre del archivo CSV
-        fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d")
-        output_bucket = "casas-final-xxx"
-        output_file = f"{fecha_actual}.csv"
-        temp_file = f"/tmp/{output_file}"
-
-        # Escribir CSV en el sistema temporal de Lambda
-        with open(temp_file, "w", newline="", encoding="utf-8") as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(["FechaDescarga", "Barrio", "Valor", "NumHabitaciones", "NumBanos", "mts2"])
-            writer.writerows(casas_data)
-
-        # Subir archivo CSV al bucket destino
-        s3_client.upload_file(temp_file, output_bucket, output_file)
-        logger.info(f"Archivo guardado en s3://{output_bucket}/{output_file}")
-
-        return {"statusCode": 200, "message": f"Archivo guardado en s3://{output_bucket}/{output_file}"}
-
+        html_obj = s3_client.get_object(Bucket=BUCKET_HTML, Key=html_filename)
+        html_content = html_obj["Body"].read().decode("utf-8")
     except Exception as e:
-        logger.error(f"Error procesando el archivo: {str(e)}")
-        return {"statusCode": 500, "message": str(e)}
+        return {"statusCode": 500, "body": f"Error al leer HTML de S3: {str(e)}"}
+
+    # Extraer datos del HTML
+    soup = BeautifulSoup(html_content, "html.parser")
+    properties = []
+
+    for listing in soup.find_all("div", class_="listing"):  # Ajusta la clase según HTML real
+        title = listing.find("h2").text.strip() if listing.find("h2") else "N/A"
+        price = listing.find("span", class_="price").text.strip() if listing.find("span", class_="price") else "N/A"
+        location = listing.find("span", class_="location").text.strip() if listing.find("span", class_="location") else "N/A"
+        
+        properties.append([title, price, location])
+
+    # Convertir datos a CSV
+    csv_buffer = StringIO()
+    writer = csv.writer(csv_buffer)
+    writer.writerow(["Título", "Precio", "Ubicación"])  # Encabezados
+    writer.writerows(properties)
+
+    # Subir CSV a S3
+    try:
+        s3_client.put_object(
+            Bucket=BUCKET_CSV,
+            Key=csv_filename,
+            Body=csv_buffer.getvalue().encode("utf-8"),
+            ContentType="text/csv"
+        )
+    except Exception as e:
+        return {"statusCode": 500, "body": f"Error al guardar CSV en S3: {str(e)}"}
+
+    return {
+        "statusCode": 200,
+        "body": f"CSV guardado en s3://{BUCKET_CSV}/{csv_filename}"
+    }
