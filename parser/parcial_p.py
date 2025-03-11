@@ -26,17 +26,29 @@ def app(event, context):
     soup = BeautifulSoup(html_content, "html.parser")
     properties = []
 
-    for listing in soup.find_all("div", class_="listing"):  # Ajusta la clase según HTML real
-        title = listing.find("h2").text.strip() if listing.find("h2") else "N/A"
-        price = listing.find("span", class_="price").text.strip() if listing.find("span", class_="price") else "N/A"
-        location = listing.find("span", class_="location").text.strip() if listing.find("span", class_="location") else "N/A"
-        
-        properties.append([title, price, location])
+    for listing in soup.find_all("div", class_="listing-card__information"):  # Identificar cada propiedad
+        barrio_elem = listing.find("div", class_="listing-card__location__geo")
+        valor_elem = listing.find("span", {"data-test": "price__actual"})
+        habitaciones_elem = listing.find("p", {"data-test": "bedrooms"})
+        banos_elem = listing.find("p", {"data-test": "bathrooms"})
+        metros_elem = listing.find("p", {"data-test": "floor-area"})
+
+        barrio = barrio_elem.text.strip() if barrio_elem else "N/A"
+        valor = valor_elem.text.strip() if valor_elem else "N/A"
+        num_habitaciones = habitaciones_elem.text.strip().split()[0] if habitaciones_elem else "N/A"
+        num_banos = banos_elem.text.strip().split()[0] if banos_elem else "N/A"
+        mts2 = metros_elem.text.strip().split()[0] if metros_elem else "N/A"
+
+        properties.append([today, barrio, valor, num_habitaciones, num_banos, mts2])
+
+    # Verifica si se encontraron datos antes de guardar
+    if not properties:
+        return {"statusCode": 500, "body": "No se encontraron datos en el HTML. Revisa la estructura."}
 
     # Convertir datos a CSV
     csv_buffer = StringIO()
     writer = csv.writer(csv_buffer)
-    writer.writerow(["Título", "Precio", "Ubicación"])  # Encabezados
+    writer.writerow(["FechaDescarga", "Barrio", "Valor", "NumHabitaciones", "NumBanos", "mts2"])  # Encabezados
     writer.writerows(properties)
 
     # Subir CSV a S3
