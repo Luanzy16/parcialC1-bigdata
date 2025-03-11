@@ -3,9 +3,14 @@ import boto3
 import datetime
 
 BUCKET_NAME = "zappa-scrapping"
-BASE_URL = "https://casas.mitula.com.co/find?operationType=sell&propertyType=mitula_studio_apartment&text=Bogot%C3%A1"
+BASE_URL = (
+    "https://casas.mitula.com.co/find?"
+    "operationType=sell&propertyType=mitula_studio_apartment"
+    "&text=Bogot%C3%A1"
+)
 
 s3_client = boto3.client("s3")
+
 
 def fetch_html(page):
     """Descarga el HTML de una página específica."""
@@ -14,6 +19,7 @@ def fetch_html(page):
     response = requests.get(url, headers=headers, timeout=10)
     response.raise_for_status()
     return response.text
+
 
 def save_to_s3(content):
     """Guarda el contenido HTML en S3."""
@@ -27,6 +33,7 @@ def save_to_s3(content):
         ContentType="text/html"
     )
     return f"s3://{BUCKET_NAME}/{s3_path}"
+
 
 def app(event, context):
     full_html = ""
