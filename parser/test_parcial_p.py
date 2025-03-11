@@ -29,7 +29,8 @@ def test_app(mock_get_object):
 
 
 @patch("parcial_p.s3_client.get_object",
-        side_effect=Exception("S3 no disponible"))
+    side_effect=Exception("S3 no disponible")
+)
 def test_s3_error(mock_get_object):
     """Prueba para simular fallo de HTML desde S3."""
     response = parcial_p.app({}, {})
