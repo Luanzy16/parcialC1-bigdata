@@ -28,7 +28,8 @@ def test_app(mock_get_object):
     assert "Archivo CSV guardado correctamente." in response["body"]
 
 
-@patch("parcial_p.s3_client.get_object",
+@patch(
+    "parcial_p.s3_client.put_object",
     side_effect=Exception("S3 no disponible")
 )
 def test_s3_error(mock_get_object):
@@ -38,7 +39,8 @@ def test_s3_error(mock_get_object):
     assert "Error al leer HTML de S3" in response["body"]
 
 
-@patch("parcial_p.s3_client.put_object",
+@patch(
+    "parcial_p.s3_client.put_object",
     side_effect=Exception("Error al guardar CSV")
 )
 @patch("parcial_p.s3_client.get_object")
