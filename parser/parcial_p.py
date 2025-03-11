@@ -1,68 +1,72 @@
-import boto3
 import csv
-import datetime
-from io import StringIO
+import boto3
 from bs4 import BeautifulSoup
+from datetime import datetime
 
-# Configuración de S3
-BUCKET_HTML = "zappa-scrapping"  # Donde está el HTML
-BUCKET_CSV = "zappa-parser1"  # Donde guardar el CSV
 
 s3_client = boto3.client("s3")
+S3_BUCKET = "zappa-scrapping"
+S3_KEY = "datos.csv"
+
 
 def app(event, context):
-    today = datetime.datetime.utcnow().strftime("%Y-%m-%d")
-    html_filename = f"{today}.html"
-    csv_filename = f"{today}.csv"
-
-    # Descargar HTML desde S3
+    """Función principal para procesar HTML de S3 y extraer propiedades."""
     try:
-        html_obj = s3_client.get_object(Bucket=BUCKET_HTML, Key=html_filename)
-        html_content = html_obj["Body"].read().decode("utf-8")
-    except Exception as e:
-        return {"statusCode": 500, "body": f"Error al leer HTML de S3: {str(e)}"}
+        response = s3_client.get_object(Bucket=S3_BUCKET, Key="index.html")
+        html = response["Body"].read().decode("utf-8")
 
-    # Extraer datos del HTML
-    soup = BeautifulSoup(html_content, "html.parser")
+    except Exception as e:
+        return {
+            "statusCode": 500,
+            "body": f"Error al leer HTML de S3: {str(e)}"
+        }
+
+    soup = BeautifulSoup(html, "html.parser")
+    today = datetime.today().strftime("%Y-%m-%d")
     properties = []
 
-    for listing in soup.find_all("div", class_="listing-card__information"):  # Identificar cada propiedad
-        barrio_elem = listing.find("div", class_="listing-card__location__geo")
-        valor_elem = listing.find("span", {"data-test": "price__actual"})
-        habitaciones_elem = listing.find("p", {"data-test": "bedrooms"})
-        banos_elem = listing.find("p", {"data-test": "bathrooms"})
-        metros_elem = listing.find("p", {"data-test": "floor-area"})
+    for listing in soup.find_all("div", class_="listing-card__information"):
+        barrio_elem = listing.find("span", class_="listing-card__location")
+        valor_elem = listing.find("span", class_="price")
+        habitaciones_elem = listing.find("span", class_="bedrooms")
+        banos_elem = listing.find("span", class_="bathrooms")
+        mts2_elem = listing.find("span", class_="area")
 
         barrio = barrio_elem.text.strip() if barrio_elem else "N/A"
         valor = valor_elem.text.strip() if valor_elem else "N/A"
-        num_habitaciones = habitaciones_elem.text.strip().split()[0] if habitaciones_elem else "N/A"
-        num_banos = banos_elem.text.strip().split()[0] if banos_elem else "N/A"
-        mts2 = metros_elem.text.strip().split()[0] if metros_elem else "N/A"
+        num_habitaciones = (
+            habitaciones_elem.text.strip().split()[0]
+            if habitaciones_elem else "N/A"
+        )
+        num_banos = banos_elem.text.strip() if banos_elem else "N/A"
+        mts2 = mts2_elem.text.strip() if mts2_elem else "N/A"
 
-        properties.append([today, barrio, valor, num_habitaciones, num_banos, mts2])
+        properties.append([
+            today, barrio, valor, num_habitaciones, num_banos, mts2
+        ])
 
-    # Verifica si se encontraron datos antes de guardar
     if not properties:
-        return {"statusCode": 500, "body": "No se encontraron datos en el HTML. Revisa la estructura."}
+        return {
+            "statusCode": 500,
+            "body": "No se encontraron datos en el HTML. Revisa la estructura."
+        }
 
-    # Convertir datos a CSV
-    csv_buffer = StringIO()
+    csv_buffer = csv.StringIO()
     writer = csv.writer(csv_buffer)
-    writer.writerow(["FechaDescarga", "Barrio", "Valor", "NumHabitaciones", "NumBanos", "mts2"])  # Encabezados
-    writer.writerows(properties)
+    writer.writerow(["FechaDescarga", "Barrio", "Valor",
+                     "NumHabitaciones", "NumBanos", "mts2"])
 
-    # Subir CSV a S3
+    for prop in properties:
+        writer.writerow(prop)
+
     try:
         s3_client.put_object(
-            Bucket=BUCKET_CSV,
-            Key=csv_filename,
-            Body=csv_buffer.getvalue().encode("utf-8"),
-            ContentType="text/csv"
+            Bucket=S3_BUCKET, Key=S3_KEY, Body=csv_buffer.getvalue()
         )
     except Exception as e:
-        return {"statusCode": 500, "body": f"Error al guardar CSV en S3: {str(e)}"}
+        return {
+            "statusCode": 500,
+            "body": f"Error al guardar CSV en S3: {str(e)}"
+        }
 
-    return {
-        "statusCode": 200,
-        "body": f"CSV guardado en s3://{BUCKET_CSV}/{csv_filename}"
-    }
+    return {"statusCode": 200, "body": "Archivo CSV guardado correctamente."}
