@@ -67,4 +67,3 @@ def test_s3_csv_save_error(mock_get_object, mock_put_object):
     response = parcial_p.app({}, {})
     assert response["statusCode"] == 500
     assert "Error al guardar CSV en S3" in response["body"]
-
