@@ -49,10 +49,10 @@ jobs:
           pip install pytest moto boto3
 
       - name: Ejecutar pruebas de Scrapping
-        run: pytest scrapping/test/
+        run: PYTHONPATH=. pytest scrapping/test/
       
       - name: Ejecutar pruebas de Parser
-        run: pytest parser/test/
+        run: PYTHONPATH=. pytest parser/test/
 
   deploy:
     name: Despliegue en AWS
