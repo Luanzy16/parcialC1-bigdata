@@ -21,7 +21,7 @@
             {
                 "function": "parcial_s.app",
                 "type": "schedule",
-                "expression": "cron(0 9 ? * MON *)"
+                "expression": "cron(0 14 ? * MON *)"
             }
         ]
     },
