@@ -1,7 +1,4 @@
-import csv
 from unittest.mock import patch, MagicMock
-from io import StringIO
-from bs4 import BeautifulSoup
 import parcial_p
 
 
@@ -32,15 +29,17 @@ def test_app(mock_get_object):
 
 
 @patch("parcial_p.s3_client.get_object",
-       side_effect=Exception("S3 no disponible"))
+        side_effect=Exception("S3 no disponible"))
 def test_s3_error(mock_get_object):
-    """Prueba para simular fallo en la obtención del HTML desde S3."""
+    """Prueba para simular fallo de HTML desde S3."""
     response = parcial_p.app({}, {})
     assert response["statusCode"] == 500
     assert "Error al leer HTML de S3" in response["body"]
 
 
-@patch("parcial_p.s3_client.put_object", side_effect=Exception("Error al guardar CSV"))
+@patch("parcial_p.s3_client.put_object",
+    side_effect=Exception("Error al guardar CSV")
+)
 @patch("parcial_p.s3_client.get_object")
 def test_s3_csv_save_error(mock_get_object, mock_put_object):
     """Prueba para simular un fallo al guardar el CSV en S3."""
