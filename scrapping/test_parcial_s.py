@@ -48,4 +48,3 @@ def test_save_to_s3(mock_put_object):
     # Verificar que put_object se llamó correctamente con los
     # parámetros esperados
     mock_put_object.assert_called_once()
-    
