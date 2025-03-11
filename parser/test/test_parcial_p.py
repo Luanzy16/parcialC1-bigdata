@@ -1,8 +1,8 @@
 from unittest.mock import patch, MagicMock
-import parcial_p
+import parser.parcial_p as parcial_p
 
 
-@patch("parcial_p.s3_client.get_object")
+@patch("parser.parcial_p.s3_client.get_object")
 def test_app(mock_get_object):
     """Prueba para verificar la función principal cuando el HTML es válido."""
     test_html = """
@@ -29,7 +29,7 @@ def test_app(mock_get_object):
 
 
 @patch(
-    "parcial_p.s3_client.put_object",
+    "parser.parcial_p.s3_client.put_object",
     side_effect=Exception("S3 no disponible")
 )
 def test_s3_error(mock_get_object):
@@ -40,10 +40,10 @@ def test_s3_error(mock_get_object):
 
 
 @patch(
-    "parcial_p.s3_client.put_object",
+    "parser.parcial_p.s3_client.put_object",
     side_effect=Exception("Error al guardar CSV")
 )
-@patch("parcial_p.s3_client.get_object")
+@patch("parser.parcial_p.s3_client.get_object")
 def test_s3_csv_save_error(mock_get_object, mock_put_object):
     """Prueba para simular un fallo al guardar el CSV en S3."""
     test_html = """
