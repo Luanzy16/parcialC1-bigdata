@@ -1,10 +1,10 @@
 import pytest
 import requests
-from parcial_s import fetch_html, save_to_s3
+from scrapping.parcial_s import fetch_html, save_to_s3
 from unittest.mock import patch, MagicMock
 
 
-@patch("parcial_s.requests.get")
+@patch("scrapping.parcial_s.requests.get")
 def test_fetch_html(mock_get):
     """Mockear requests.get() para probar fetch_html()."""
     mock_response = MagicMock()
@@ -24,7 +24,7 @@ def test_fetch_html(mock_get):
     assert html == "<html><body>Prueba</body></html>"
 
 
-@patch("parcial_s.requests.get")
+@patch("scrapping.parcial_s.requests.get")
 def test_fetch_html_error(mock_get):
     """Simular error en fetch_html()."""
     mock_get.side_effect = requests.RequestException("Error de conexión")
@@ -33,7 +33,7 @@ def test_fetch_html_error(mock_get):
         fetch_html(1)
 
 
-@patch("parcial_s.s3_client.put_object")
+@patch("scrapping.parcial_s.s3_client.put_object")
 def test_save_to_s3(mock_put_object):
     """Mockear boto3 para probar save_to_s3()."""
     mock_put_object.return_value = {}
