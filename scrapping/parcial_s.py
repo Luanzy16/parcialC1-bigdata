@@ -25,7 +25,6 @@ def save_to_s3(content):
     """Guarda el contenido HTML en S3."""
     today = datetime.datetime.utcnow().strftime("%Y-%m-%d")
     s3_path = f"{today}.html"
-    
     s3_client.put_object(
         Bucket=BUCKET_NAME,
         Key=s3_path,
@@ -44,5 +43,5 @@ def app(event, context):
             print(f"Error descargando página {page}: {e}")
 
     s3_path = save_to_s3(full_html)
-    
     return {"statusCode": 200, "body": f"Archivo guardado en {s3_path}"}
+    
