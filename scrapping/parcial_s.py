@@ -44,4 +44,3 @@ def app(event, context):
 
     s3_path = save_to_s3(full_html)
     return {"statusCode": 200, "body": f"Archivo guardado en {s3_path}"}
-    
