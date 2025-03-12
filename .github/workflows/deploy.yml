@@ -71,7 +71,7 @@ jobs:
       - name: Desplegar en S3
         run: |
           aws s3 cp deploy.zip s3://bucket-deploy.zip/deploy.zip
-          aws s3 sync . s3://nombre-del-bucket/ --exclude ".git/*" --exclude ".github/*" --exclude "*.pyc" --exclude "__pycache__/*" --delete
+          aws s3 sync . s3://bucket-deploy.zip/ --exclude ".git/*" --exclude ".github/*" --exclude "*.pyc" --exclude "__pycache__/*" --delete
 
 
 
