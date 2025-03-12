@@ -89,7 +89,7 @@ jobs:
       - name: Deploy con Zappa
         run: |
           source venv/bin/activate
-          cd Parsing
+          cd parser
           ls  # 🔹 Verificar archivos antes de desplegar
           
           zappa status dev_parser || true  # 🔹 Evitar error si no existe
