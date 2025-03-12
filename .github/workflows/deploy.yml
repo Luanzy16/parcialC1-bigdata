@@ -87,7 +87,7 @@ jobs:
             zappa deploy dev_parser
           fi
 
-      - name: Verificar estado de Zappa
+      - name: Verificar estado de Zappa 
         run: |
           . env/bin/activate
           cd parser
