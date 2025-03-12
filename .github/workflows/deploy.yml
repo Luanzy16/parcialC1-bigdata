@@ -91,11 +91,5 @@ jobs:
           source venv/bin/activate
           
           cd parser
-          zappa deploy dev_parser
-
-      - name: Verificar estado del despliegue
-        run: |
-          source venv/bin/activate
-          cd parser
-          zappa status dev_parser || { echo "Error en despliegue"; exit 1; }
+          zappa update dev_parser
 
