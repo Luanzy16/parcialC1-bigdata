@@ -51,7 +51,7 @@ jobs:
       - name: Ejecutar pruebas con pytest
         run: PYTHONPATH=$(pwd) pytest scrapping/test/ parser/test/
 
-  deploy:
+ deploy:
     name: Despliegue en AWS con Zappa
     runs-on: ubuntu-latest
     needs: test
@@ -62,15 +62,15 @@ jobs:
       - name: Configurar Python
         uses: actions/setup-python@v3
         with:
-          python-version: '3.10'
+          python-version: '3.9'
 
       - name: Instalar dependencias y configurar entorno virtual
         run: |
           python -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip wheel setuptools
-          pip install -r requirements.txt
-          pip install zappa
+          venv/bin/pip install --upgrade pip wheel
+          venv/bin/pip install "setuptools<58.0.0"
+          venv/bin/pip install -r requirements.txt
+          venv/bin/pip install boto3 beautifulsoup4 awscli zappa
 
       - name: Configurar credenciales de AWS
         uses: aws-actions/configure-aws-credentials@v4
@@ -80,17 +80,27 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
-      - name: Verificar estructura de archivos
-        run: ls -R
-
       - name: Verificar conexión con AWS S3
-        run: source venv/bin/activate && aws s3 ls
+        run: venv/bin/aws s3 ls
 
-      - name: Instalar Zappa
-        run: pip install zappa
-
-      - name: Desplegar con Zappa
+      - name: Deploy with Zappa
         run: |
-          source venv/bin/activate
-          zappa update dev || zappa deploy dev
+        
+          source venv/bin/activate  # Activar entorno virtual
+          cd Parsing
+          ls  # Verificar archivos dentro de Parsing
+          
+          if zappa status dev_parser || true; then
+            zappa update dev_parser
+          else
+            zappa deploy dev_parser
+          fi
+        
+
+      # 🔹 Paso 7: Verificar despliegue
+      - name: Check Zappa Status
+        run: |
+          source venv/bin/activate  # Activarlo
+          cd Parsing
+          zappa status dev_parser
 
