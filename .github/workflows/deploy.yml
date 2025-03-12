@@ -69,7 +69,7 @@ jobs:
           aws-region: us-east-1  # Cambia a la región de tu cuenta AWS
 
       - name: Verificar conexión con AWS S3
-        run: venv/bin/aws s3 ls
+        run: env/bin/aws s3 ls
 
       - name: Deploy with Zappa
         run: |
