@@ -93,7 +93,7 @@ jobs:
           
           cd parser
 
-          if zappa status dev_parser; then
+          if zappa status dev_parser || true; then
             zappa update dev_parser
           else
             zappa deploy dev_parser
