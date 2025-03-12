@@ -68,14 +68,14 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1  # Cambia a la región de tu cuenta AWS
 
-       - name: Verificar conexión con AWS S3
+      - name: Verificar conexión con AWS S3
         run: venv/bin/aws s3 ls
 
       - name: Deploy with Zappa
         run: |
         
           source env/bin/activate  # Activar entorno virtual
-          cd Parsing
+          cd parser
           ls  # Verificar archivos dentro de Parsing
           
           if zappa status dev_parser || true; then
@@ -88,8 +88,8 @@ jobs:
       # 🔹 Paso 7: Verificar despliegue
       - name: Check Zappa Status
         run: |
-          source venv/bin/activate  # Activarlo
-          cd Parsing
+          source env/bin/activate  # Activarlo
+          cd parser
           zappa status dev_parser
 
 
