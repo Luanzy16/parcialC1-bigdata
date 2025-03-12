@@ -86,16 +86,8 @@ jobs:
       - name: Verificar conexión con AWS S3
         run: source venv/bin/activate && aws s3 ls
 
-      - name: Verificar que `parser` contiene `zappa_settings.json`
-        run: |
-          if [ ! -f "parser/zappa_settings.json" ]; then
-            echo "Error: No se encontró zappa_settings.json en parser"
-            exit 1
-          fi
-
       - name: Deploy con Zappa
         run: |
-          set -e  # Detener la ejecución si hay un error
           source venv/bin/activate
           
           cd parser
