@@ -87,8 +87,6 @@ jobs:
 
       - name: Deploy con Zappa
         run: |
-          source venv/bin/activate
-          
           cd parser
           zappa update dev_parser
 
