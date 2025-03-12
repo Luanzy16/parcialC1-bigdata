@@ -86,14 +86,6 @@ jobs:
           source venv/bin/activate
           aws s3 ls
 
-      - name: Verificar existencia de `zappa_settings.json`
-        run: |
-          if [ ! -f "zappa_settings.json" ]; then
-            echo "Error: El archivo zappa_settings.json no existe"
-            exit 1
-          fi
-          cat zappa_settings.json
-
       - name: Deploy con Zappa
         run: |
           source venv/bin/activate
