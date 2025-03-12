@@ -50,7 +50,7 @@ jobs:
 
       - name: Ejecutar pruebas con pytest
         run: PYTHONPATH=$(pwd) pytest scrapping/test/ parser/test/
-
+        
  deploy:
     name: Despliegue en AWS con Zappa
     runs-on: ubuntu-latest
