@@ -69,6 +69,9 @@ jobs:
           aws-region: us-east-1  # Cambia a la región de tu cuenta AWS
 
       - name: Desplegar en S3
-        run: aws s3 sync . s3://bucket-deploy.zip --delete
+        run: |
+          aws s3 cp deploy.zip s3://bucket-deploy.zip/deploy.zip
+          aws s3 sync . s3://nombre-del-bucket/ --exclude ".git/*" --exclude ".github/*" --exclude "*.pyc" --exclude "__pycache__/*" --delete
+
 
 
