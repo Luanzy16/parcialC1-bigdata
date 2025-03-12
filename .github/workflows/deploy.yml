@@ -86,8 +86,11 @@ jobs:
       - name: Verificar conexión con AWS S3
         run: source venv/bin/activate && aws s3 ls
 
-      - name: Deploy con Zappa
+     - name: Instalar Zappa
+        run: pip install zappa
+
+      - name: Desplegar con Zappa
         run: |
-          cd parser
-          zappa update dev_parser
+          source venv/bin/activate
+          zappa update dev || zappa deploy dev
 
