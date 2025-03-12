@@ -91,15 +91,7 @@ jobs:
           source venv/bin/activate
           
           cd parser
-
-          # Comprobar si el servicio ya está desplegado
-          if zappa status dev_parser > /dev/null 2>&1; then
-            echo "Actualizando servicio con Zappa..."
-            zappa update dev_parser
-          else
-            echo "Desplegando nuevo servicio con Zappa..."
-            zappa deploy dev_parser
-          fi
+          zappa deploy dev_parser
 
       - name: Verificar estado del despliegue
         run: |
