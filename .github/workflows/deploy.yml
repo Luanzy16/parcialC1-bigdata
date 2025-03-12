@@ -68,9 +68,6 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1  # Cambia a la región de tu cuenta AWS
 
-      - name: Verificar conexión con AWS S3
-        run: aws s3 ls
-
       - name: Deploy with Zappa
         run: |
         
