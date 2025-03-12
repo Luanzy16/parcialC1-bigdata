@@ -70,7 +70,7 @@ jobs:
           source venv/bin/activate
           pip install --upgrade pip wheel setuptools
           pip install -r requirements.txt
-          pip install boto3 beautifulsoup4 awscli zappa
+          pip install zappa
 
       - name: Configurar credenciales de AWS
         uses: aws-actions/configure-aws-credentials@v4
@@ -86,21 +86,32 @@ jobs:
       - name: Verificar conexión con AWS S3
         run: source venv/bin/activate && aws s3 ls
 
+      - name: Verificar que `parser` contiene `zappa_settings.json`
+        run: |
+          if [ ! -f "parser/zappa_settings.json" ]; then
+            echo "Error: No se encontró zappa_settings.json en parser"
+            exit 1
+          fi
+
       - name: Deploy con Zappa
         run: |
+          set -e  # Detener la ejecución si hay un error
           source venv/bin/activate
-          ls -R  # Ver estructura de carpetas
           
           cd parser
 
-          if zappa status dev_parser || true; then
+          # Comprobar si el servicio ya está desplegado
+          if zappa status dev_parser > /dev/null 2>&1; then
+            echo "Actualizando servicio con Zappa..."
             zappa update dev_parser
           else
+            echo "Desplegando nuevo servicio con Zappa..."
             zappa deploy dev_parser
           fi
 
       - name: Verificar estado del despliegue
         run: |
           source venv/bin/activate
-          cd parser || echo "Carpeta Parsing no encontrada"
-          zappa status dev_parser || echo "Error en Zappa"
+          cd parser
+          zappa status dev_parser || { echo "Error en despliegue"; exit 1; }
+
