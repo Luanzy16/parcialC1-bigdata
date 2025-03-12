@@ -71,10 +71,5 @@ jobs:
       - name: Desplegar en AWS Lambda
         run: |
           zip -r deploy.zip .
-          
-          # Subir el archivo a S3
-          aws s3 cp deploy.zip s3://bucket-deploy.zip/deploy.zip
-      
-          # Actualizar la función Lambda con el código desde S3
-          aws lambda update-function-code --function-name mi_lambda_function --s3-bucket mi-bucket-deploy --s3-key deploy.zip
+          aws lambda update-function-code --function-name mi_lambda_function --zip-file fileb://deploy.zip quiero guardarlo en un s3
 
