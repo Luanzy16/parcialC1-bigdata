@@ -67,15 +67,18 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1  # Cambia a la región de tu cuenta AWs
-
-      - name: Deploy with Zappa
+      
+      - name: Descarga dependencias
         run: |
-          
           python -m venv env
           source env/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
           pip install zappa
+
+      - name: Deploy with Zappa
+        run: |
+          
           source env/bin/activate  # Activar entorno virtual
           cd parser
           ls  # Verificar archivos dentro de Parsing
