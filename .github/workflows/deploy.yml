@@ -91,9 +91,7 @@ jobs:
           source venv/bin/activate
           ls -R  # Ver estructura de carpetas
           
-          if [ -d "Parsing" ]; then
-            cd Parsing
-          fi
+          cd parser
 
           if zappa status dev_parser; then
             zappa update dev_parser
@@ -104,5 +102,5 @@ jobs:
       - name: Verificar estado del despliegue
         run: |
           source venv/bin/activate
-          cd Parsing || echo "Carpeta Parsing no encontrada"
+          cd parser || echo "Carpeta Parsing no encontrada"
           zappa status dev_parser || echo "Error en Zappa"
