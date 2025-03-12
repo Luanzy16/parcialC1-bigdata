@@ -68,7 +68,28 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1  # Cambia a la región de tu cuenta AWS
 
-      - name: Desplegar en S3
-        run: aws s3 sync . s3://bucket-deploy.zip --delete
+       - name: Verificar conexión con AWS S3
+        run: venv/bin/aws s3 ls
+
+      - name: Deploy with Zappa
+        run: |
+        
+          source env/bin/activate  # Activar entorno virtual
+          cd Parsing
+          ls  # Verificar archivos dentro de Parsing
+          
+          if zappa status dev_parser || true; then
+            zappa update dev_parser
+          else
+            zappa deploy dev_parser
+          fi
+        
+
+      # 🔹 Paso 7: Verificar despliegue
+      - name: Check Zappa Status
+        run: |
+          source venv/bin/activate  # Activarlo
+          cd Parsing
+          zappa status dev_parser
 
 
