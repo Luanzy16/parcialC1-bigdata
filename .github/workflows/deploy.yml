@@ -48,11 +48,8 @@ jobs:
           pip install -r requirements.txt
           pip install pytest moto boto3
 
-      - name: Ejecutar pruebas de Scrapping
-        run: PYTHONPATH=. pytest scrapping/test/
-      
-      - name: Ejecutar pruebas de Parser
-        run: PYTHONPATH=. pytest parser/test/
+      - name: Ejecutar pruebas con pytest
+        run: PYTHONPATH=$(pwd) pytest scrapping/test/ parser/test/
 
   deploy:
     name: Despliegue en AWS
