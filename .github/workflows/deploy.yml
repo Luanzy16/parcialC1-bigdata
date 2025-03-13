@@ -52,53 +52,33 @@ jobs:
         run: PYTHONPATH=$(pwd) pytest scrapping/test/ parser/test/
 
   deploy:
-    name: Deploy to AWS Lambda
+    name: Despliegue automático en AWS
     runs-on: ubuntu-latest
     needs: [lint, test]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
+      - uses: actions/checkout@v3
+      - name: Configurar Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
-
-      - name: Install dependencies
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install zappa boto3 awscli
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+          python-version: '3.10'
+      - name: Verificar credenciales AWS
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
-
-      - name: Verify AWS credentials
+      - name: Desplegar lambda
         run: |
-          aws sts get-caller-identity
-          aws s3 ls
-
-      - name: Forzar Zappa a ignorar perfiles
-        run: |
-          mkdir -p ~/.aws  # 🔹 Crea la carpeta si no existe
-          echo "[default]" > ~/.aws/credentials
-          echo "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
-          echo "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
-          echo "aws_session_token=${{ secrets.AWS_SESSION_TOKEN }}" >> ~/.aws/credentials
-          cat ~/.aws/credentials  # Opcional: Verifica que se creó correctamente (sin exponer claves)
-
-      - name: Deploy with Zappa
-        env:
-          AWS_DEFAULT_REGION: us-east-1
-          AWS_REGION: us-east-1
-          AWS_PROFILE: default  # Forzamos que use las credenciales configuradas
-        run: |
+          # Crear y activar el entorno virtual
+          python -m venv venv
           source venv/bin/activate
-          zappa update dev_parser -s parcialc1/parser/zappa_settings.json
+          
+          # Instalar Zappa y boto3
+          pip install zappa boto3
+          
+          # Desplegar Lambda de Scraping
+          zappa update dev_srapping --settings_file scrapping/zappa_settings.json
+          
+          # Desplegar Lambda de Procesamiento
+          zappa update dev_parser --settings_file parser/zappa_settings.json
