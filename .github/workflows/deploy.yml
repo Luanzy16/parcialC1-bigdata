@@ -51,59 +51,56 @@ jobs:
       - name: Ejecutar pruebas con pytest
         run: PYTHONPATH=$(pwd) pytest scrapping/test/ parser/test/
 
-  deploy:
-    name: Despliegue en AWS con Zappa
+ deploy:
+    name: Deploy to AWS Lambda
     runs-on: ubuntu-latest
-    needs: test
+    needs: [lint, test]
     steps:
-      - name: Checkout del código
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Configurar Python
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"  # 🔹 Ahora igual que en los otros jobs
+          python-version: "3.10"
 
-      - name: Instalar dependencias y configurar entorno virtual
+      - name: Install dependencies
         run: |
           python -m venv venv
           source venv/bin/activate
-          pip install --upgrade pip wheel
-          pip install "setuptools<58.0.0"
+          pip install --upgrade pip
           pip install -r requirements.txt
-          pip install boto3 beautifulsoup4 awscli zappa
+          pip install zappa boto3 awscli
 
-      - name: Configurar credenciales de AWS
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
-      - name: Verificar conexión con AWS S3
+
+      - name: Verify AWS credentials
         run: |
-          source venv/bin/activate
+          aws sts get-caller-identity
           aws s3 ls
 
-      - name: Deploy con Zappa
+      - name: Forzar Zappa a ignorar perfiles
         run: |
-          source venv/bin/activate
-          cd parser
-          ls  # 🔹 Verificar archivos antes de desplegar
-          
-          zappa status dev_parser || true  # 🔹 Evitar error si no existe
-          
-          if zappa status dev_parser 2>/dev/null; then
-            echo "Actualizando aplicación..."
-            zappa update dev_parser
-          else
-            echo "Desplegando nueva aplicación..."
-            zappa deploy dev_parser
-          fi
+          mkdir -p ~/.aws  # 🔹 Crea la carpeta si no existe
+          echo "[default]" > ~/.aws/credentials
+          echo "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
+          echo "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
+          echo "aws_session_token=${{ secrets.AWS_SESSION_TOKEN }}" >> ~/.aws/credentials
+          cat ~/.aws/credentials  # Opcional: Verifica que se creó correctamente (sin exponer claves)
 
-      - name: Verificar despliegue con Zappa
+
+      - name: Deploy with Zappa
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_REGION: us-east-1
+          AWS_PROFILE: default  # Forzamos que use las credenciales configuradas
         run: |
           source venv/bin/activate
-          cd Parsing
-          zappa status dev_parser
+          zappa update devi -s Parcial1Big/Zappacsv/zappa_settings.json
