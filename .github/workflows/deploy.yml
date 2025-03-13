@@ -101,4 +101,4 @@ jobs:
           AWS_PROFILE: default  # Forzamos que use las credenciales configuradas
         run: |
           source venv/bin/activate
-          zappa deploy devi -s parcialc1/parser/zappa_settings.json
+          zappa deploy dev_parser -s parcialc1/parser/zappa_settings.json
