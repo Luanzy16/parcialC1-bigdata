@@ -81,4 +81,4 @@ jobs:
           zappa update dev_scrapping --settings_file scrapping/zappa_settings.json
           
           # Desplegar Lambda de Procesamiento
-          zappa update dev_parser --settings_file parser/zappa_settings.json
+          zappa update dev_parser --settings_file parser/zappa_settings.json 
